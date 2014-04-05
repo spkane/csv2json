@@ -3,6 +3,8 @@ package csv2json
 import (
 	"bytes"
 	"testing"
+    "io/ioutil"
+    "os"
 )
 
 var columns = []string{"name", "email", "phone"}
@@ -44,4 +46,31 @@ func TestConvertWithBuffer(t *testing.T) {
 		t.Errorf("TestConvertWithBuffer(f, %s) = %s; want %s",
 			columns, string(got), want)
 	}
+}
+
+func TestConvertWithFile(t *testing.T) {
+    tf, err := ioutil.TempFile("", "")
+    if err != nil {
+        t.Error(err)
+    }
+    defer os.Remove(tf.Name())
+
+    err = ioutil.WriteFile(tf.Name(), []byte(input), 0644)
+    if err != nil {
+        t.Error(err)
+    }
+
+    f, err := os.Open(tf.Name())
+    if err != nil {
+        t.Error(err)
+    }
+    defer f.Close()
+
+    got, err := Convert(f, columns)
+    if err != nil {
+        t.Error(err)
+    }
+    if string(got) != want {
+        t.Errorf("TestConvertWithFile(f, %s) = %s; want %s", columns, string(got), want)
+    }
 }
